@@ -1,0 +1,87 @@
+<?php 
+include_once('Views/template/header.php'); 
+include_once('Models/DeliveryPoint.php');
+include_once('Models/DeliveryUser.php');
+include_once('Models/DeliveryStatus.php');
+
+
+
+$getParcelModel = new DeliveryPoint();
+$parcel = $getParcelModel->get($_GET['id']);
+
+$dataModel = new DeliveryUser();
+$users = $dataModel->getDeliverers();
+
+$statusModel = new DeliveryStatus();
+$statusList  = $statusModel->getAllStatusList();
+
+
+?>
+<div class="container mb-5 pb-2">
+    <div class="p-5  border border-secondary " style="background-color: #fffe;">
+        <h4 class="text-center">UPDATE</h4>
+        <hr>
+        <form method="post" name="update_form" action="UpdateController.php" enctype="multipart/form-data" >
+            <div class="form-group">
+                <label>Receiver Name</label><input type="text" name="name" value="<?= $parcel['name'] ?>" class="form-control" require >
+            </div>
+            <div class="form-group">
+                <label>Address Line 1</label><input type="text" name="address_1" value="<?= $parcel['address_1'] ?>" class="form-control" require>
+            </div>
+            <div class="form-group">
+                <label>Address Line 2</label><input type="text" name="address_2" value="<?= $parcel['address_2'] ?>" class="form-control" require>
+            </div>
+
+            <div class="form-group">
+                <label>Postcode</label><input type="text" name="postcode" value="<?= $parcel['postcode'] ?>" class="form-control" >
+            </div>
+
+            <div class="form-group">
+                <label>Latitude</label><input type="text" name="lat" value="<?= $parcel['lat'] ?>" class="form-control" require>
+            </div>
+            <div class="mt-2">
+                <label>Longitude</label><input type="text" name="lng" value="<?= $parcel['lng'] ?>" class="form-control" require>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select name="status" class="form-control">
+                    <?php
+                    while ($st = $statusList->fetch()) {
+                    ?>
+                        <option <?= $parcel['status'] == $st['id'] ? 'selected' : '' ?> value="<?= $st['id'] ?>"><?= $st['status_text'] ?></option>
+                    <?php
+                    }
+
+                    ?>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Deliverer</label>
+                <select name="deliverer" class="form-control">
+                    <?php
+                    while ($user = $users->fetch()) {
+                    ?>
+                        <option <?= $parcel['deliverer'] == $user['userid'] ? 'selected' : '' ?> value="<?= $user['userid'] ?>"><?= $user['username'] ?></option>
+                    <?php
+                    }
+
+                    ?>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Parcel Photo</label>
+                <input type="file" name="image" class="form-control">
+            </div><br>
+            <div class="form-group">
+                <input type="text" name="id" value="<?= $parcel['id'] ?>" hidden>
+                <button class="btn btn-info btn-lg" name="update">Update</button>
+            </div>
+            <br>
+        </form>
+        <br>
+    </div>
+    <br>
+</div>
+
+<?php include_once('Views/template/footer.php'); ?>

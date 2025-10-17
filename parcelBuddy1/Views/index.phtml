@@ -1,0 +1,31 @@
+<?php include_once('Views/template/header.php'); ?>
+
+<div class="login-form text-center">
+        <div class="p-5  w-25 mx-auto text-center" style="background-color:#fffd ;margin-top: 50px; border:solid 1px #3334; border-radius: 8px;">
+        <img src="images/logo.png" height="180" alt="">
+            <?php
+            if (!isset($_SESSION['loggedIn'])) {
+            ?>
+                <form name="login_form" method="post" action="index.php">
+                    <div class="form-group">
+                        <input  class="form-control" name="username"  placeholder="Enter email" required>
+                    </div>
+                    <div class="form-group mt-2">
+                        <input type="password" name="password"  class="form-control" id="" placeholder="Password" required>
+                    </div><br>
+                   
+                    <button   class="form-control btn btn-info"  type="submit" >Login</button>
+                    <?php
+                        if(isset( $_SESSION['login_error'])){
+                            echo  $_SESSION['login_error'];
+                            unset($_SESSION['login_error']);
+                        }
+                    ?>
+                </form>
+            <?php
+            }
+            ?>
+        </div>
+</div>
+
+<?php include_once('Views/template/footer.php'); ?>

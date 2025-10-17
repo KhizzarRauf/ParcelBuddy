@@ -1,0 +1,9 @@
+body{
+    background-size: 100%;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-position-y: -90px;
+}
+.btn{
+    margin-right: 5px;
+}

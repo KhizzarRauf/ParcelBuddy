@@ -1,0 +1,129 @@
+<?php include_once('Views/template/header.php'); ?>
+
+<div class="p-5 mt-5" style="margin-left: 10%;">
+    <div id="Map" style="width: 80%; height: 480px;border: solid 3px #4445">
+    </div>
+</div>
+<script src="OpenLayers/OpenLayers.js"></script>
+<script src="QrGenerator/qrcode.js"></script>
+
+<script>
+    const xhttp = new XMLHttpRequest();
+    xhttp.onload = function() {
+        console.log(this.responseText);
+        let locations = JSON.parse(this.responseText);
+        let lat = -33.89;
+        let lon = 151.274856;
+        let zoom = 5;
+        let map; // Declare map variable globally for access in the click event
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition);
+        } else {
+            console.log("Geolocation is not supported by this browser.");
+            makeMap();
+        }
+
+        function showPosition(position) {
+            lat = position.coords.latitude;
+            lon = position.coords.longitude;
+            makeMap();
+        }
+
+        function makeMap() {
+            var fromProjection = new OpenLayers.Projection("EPSG:4326");
+            var toProjection = new OpenLayers.Projection("EPSG:900913");
+            var position = new OpenLayers.LonLat(lon, lat).transform(fromProjection, toProjection);
+
+            map = new OpenLayers.Map("Map");
+            var mapnik = new OpenLayers.Layer.OSM();
+            map.addLayer(mapnik);
+
+            var markers = new OpenLayers.Layer.Markers("Markers");
+            map.addLayer(markers);
+
+            for (var i = 0; i < locations.length; i++) {
+                createMarker(locations[i], i);
+            }
+
+
+            function createMarker(item, index) {
+                let mposition = new OpenLayers.LonLat(item[2], item[1]).transform(fromProjection, toProjection);
+                let marker = new OpenLayers.Marker(mposition);
+
+                // Create a popup with HTML content for each marker
+                let popupContent = '<div style="width:200px;">';
+                popupContent += '<div><b>Parcel ID :' + item[0] + '</b></div>';
+                popupContent += '<div>' + item[3] + ',' + item[4] + '</div>';
+
+                // Generate QR code and include it in the popup content
+                let qrCode = generateQRCode(item[0]);
+                popupContent += '<div style="margin-top: 10px;">' + qrCode + '</div>';
+
+                popupContent += '<div><b>Deliverer:</b>' + item[5] + '</div>';
+                popupContent += '<div><b>Status:</b>' + item[6] + '</div>';
+                popupContent += '<div><button class="btn btn-success btn-sm" onclick="handleStatus(' + item[0] + ',3)">Delivered</button>';
+                popupContent += '<button class="btn btn-danger btn-sm" onclick="handleStatus(' + item[0] + ',4)">No Answer</button></div>';
+
+                popupContent += '</div>';
+
+                let popup = new OpenLayers.Popup.FramedCloud("Popup" + index,
+                    mposition,
+                    new OpenLayers.Size(200, 200),
+                    popupContent,
+                    null,
+                    true
+                );
+
+                marker.events.register("mouseover", marker, function(e) {
+                    map.addPopup(popup);
+                });
+
+                marker.events.register("mouseout", marker, function(e) {
+                    setTimeout(() => {
+                        map.removePopup(popup);
+                    }, 3500);
+                });
+
+                markers.addMarker(marker);
+            }
+
+            map.setCenter(position, zoom);
+        }
+    }
+
+    xhttp.open("GET", "ajax/getAllParcelLocationData.php");
+    xhttp.send();
+
+    function handleStatus(id, status) {
+
+        const xhr = new XMLHttpRequest();
+        // http request
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                alert("Status Updated!");
+                window.location.reload();
+            }
+
+        }
+        xhr.open('GET', 'ajax/updateStatus.php?status=' + status + '&id=' + id);
+        xhr.send();
+    }
+
+    function generateQRCode(parcelId) {
+        let typeNumber = 4; 
+        let errorCorrectionLevel = 'L';
+
+        let qr = qrcode(typeNumber, errorCorrectionLevel);
+        qr.addData("http://localhost/parcelbuddy/ShowController.php?id=" + parcelId);
+        qr.make();
+
+        // Get the generated QR code as an HTML image tag
+        return qr.createImgTag();
+    }
+</script>
+
+
+
+
+<?php include_once('Views/template/footer.php'); ?>

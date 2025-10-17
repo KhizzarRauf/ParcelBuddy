@@ -1,0 +1,58 @@
+<?php include_once('Views/template/header.php'); ?>
+
+<div class="p-5 mt-5 mb-5 pb-5">
+    <div>
+        <form action="">
+            <div>
+                <div style="width: 50%;display:flex;justify-content: left;">
+                    <input class="form-control" value="<?= isset($_GET['parcel_id']) ? $_GET['parcel_id'] : '' ?>" name="parcel_id" placeholder="Parcel ID" type="number" />
+                    <input class="form-control" value="<?= isset($_GET['name']) ? $_GET['name'] : '' ?>" name="name" placeholder="Client Name" />
+                    <input class="form-control" value="<?= isset($_GET['address_1']) ? $_GET['address_1'] : '' ?>" name="address_1" placeholder="Address 1" /> <br>
+                    <input class="form-control" value="<?= isset($_GET['address_2']) ? $_GET['address_2'] : '' ?>" name="address_2" placeholder="Address 2" /> <br>
+                    <input class="form-control" value="<?= isset($_GET['postcode']) ? $_GET['postcode'] : '' ?>" name="postcode" placeholder="Post Code" />
+                    <button type="submit" class="btn btn-info ml-2">Search</button>
+                </div>
+                <div style="display:flex;justify-content: left;margin-top: 10px;align-items: center;">
+                    <span>Sort&nbsp;</span>
+                    <select name="sort" class="form-control" style="width: 200px;">
+                        <option <?= (isset($_GET['sort']) && $_GET['sort'] == 'id') ? 'selected' : '' ?> value="id">ID</option>
+                        <option <?= (isset($_GET['sort']) && $_GET['sort'] == 'name') ? 'selected' : '' ?> value="name">Name</option>
+                        <option <?= (isset($_GET['sort']) && $_GET['sort'] == 'address_1') ? 'selected' : '' ?> value="address_1">Address 1</option>
+                        <option <?= (isset($_GET['sort']) && $_GET['sort'] == 'address_2') ? 'selected' : '' ?> value="address_2">Address 2</option>
+                        <option <?= (isset($_GET['sort']) && $_GET['sort'] == 'postcode') ? 'selected' : '' ?> value="postcode">Post Code</option>
+                    </select>
+                    <button type="submit" class="btn btn-info ml-2">Sort</button>
+
+                    <a href="?page=1" class="btn btn-link">Reset</a>
+                </div>
+            </div>
+        </form>
+
+
+        <table class="table table-hover mt-4" style="background-color: #fffe;">
+            <tr style="background-color: darkslateblue;" class=" text-white">
+                <th>ID</th>
+                <th>Name</th>
+                <th>Address 1</th>
+                <th>Address 2</th>
+                <th>Post Code</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Deliverer</th>
+                <th>Parcel Photo</th>
+                <th>Status</th>
+                <th colspan="2">Action</th>
+
+            </tr>
+            <tbody>
+                <?php
+                include_once('Models/DeliveryPoint.php');
+                $dataModel = new DeliveryPoint();
+                $dataModel->getAdminsParcelsList();
+                ?>
+            </tbody>
+          
+        </table>
+    </div>
+</div>
+<?php include_once('Views/template/footer.php'); ?>

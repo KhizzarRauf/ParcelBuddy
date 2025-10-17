@@ -1,0 +1,152 @@
+<?php include_once('Views/template/header.php'); ?>
+<?php include_once('Models/DeliveryPoint.php'); ?>
+<div class="p-5 mt-5">
+    <div>
+        <form action="">
+            <div>
+                <div style="width: 50%;display:flex;justify-content: left;">
+                    <input class="form-control" value="<?= isset($_GET['parcel_id']) ? $_GET['parcel_id'] : '' ?>" name="parcel_id" placeholder="Parcel ID" type="number" />
+                    <input class="form-control" value="<?= isset($_GET['name']) ? $_GET['name'] : '' ?>" name="name" placeholder="Client Name" />
+                    <input class="form-control" value="<?= isset($_GET['address_1']) ? $_GET['address_1'] : '' ?>" name="address_1" placeholder="Address 1" /> <br>
+                    <input class="form-control" value="<?= isset($_GET['address_2']) ? $_GET['address_2'] : '' ?>" name="address_2" placeholder="Address 2" /> <br>
+                    <input class="form-control" value="<?= isset($_GET['postcode']) ? $_GET['postcode'] : '' ?>" name="postcode" placeholder="Post Code" />
+                    <button type="submit" class="btn btn-info ml-2">Search</button>
+                </div>
+                <div style="display:flex;justify-content: left;margin-top: 10px;align-items: center;">
+                    <span>Sort&nbsp;</span>
+                    <select name="sort" class="form-control" style="width: 200px;">
+                        <option <?= (isset($_GET['sort']) && $_GET['sort'] == 'id') ? 'selected' : '' ?> value="id">ID</option>
+                        <option <?= (isset($_GET['sort']) && $_GET['sort'] == 'name') ? 'selected' : '' ?> value="name">Name</option>
+                        <option <?= (isset($_GET['sort']) && $_GET['sort'] == 'address_1') ? 'selected' : '' ?> value="address_1">Address 1</option>
+                        <option <?= (isset($_GET['sort']) && $_GET['sort'] == 'address_2') ? 'selected' : '' ?> value="address_2">Address 2</option>
+                        <option <?= (isset($_GET['sort']) && $_GET['sort'] == 'postcode') ? 'selected' : '' ?> value="postcode">Post Code</option>
+                    </select>
+                    <button type="submit" class="btn btn-info ml-2">Sort</button>
+                    <?php
+                    $current_page = isset($_GET['page']) ? $_GET['page'] : 1;
+                    $next_page = $current_page + 1;
+                    $prev_page = $current_page - 1;
+                    ?>
+                    <a href="?page=1" class="btn btn-link">Reset</a>
+                </div>
+            </div>
+        </form>
+        <table class="table table-hover mt-4" style="background-color: #fffe;">
+            <tr style="background-color: darkslateblue;" class=" text-white">
+                <th>ID</th>
+                <th>Name</th>
+                <th>Address 1</th>
+                <th>Address 2</th>
+                <th>Post Code</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Parcel Photo</th>
+                <th>Status</th>
+            </tr>
+            <tbody id="tbody">
+                <?php
+                $dataModel = new DeliveryPoint();
+                $dataModel->getDelivererParcelsList(1,0);
+                ?>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="12" class="text-center">
+                        <button id="load-more-button" class="btn btn-info">LOAD MORE</button>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    const loadMoreButton = document.querySelector('#load-more-button');
+    let offset = 100;
+
+    // data load when button click
+    loadMoreButton.addEventListener('click', function() {
+        loadData();
+    });
+
+    function loadData() {
+        const xhr = new XMLHttpRequest();
+
+        // http request
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const data = JSON.parse(xhr.responseText);
+                const tableBody = document.querySelector('#tbody');
+
+                // for each user data,
+                data.forEach(function(row) {
+                    const tr = document.createElement('tr');
+
+                    // create td elements and append into tr
+                    let td = document.createElement('td');
+                    td.innerHTML = row['parcel_id'];
+                    tr.appendChild(td);
+
+                    td = document.createElement('td');
+                    td.innerHTML = row['name'];
+                    tr.appendChild(td);
+
+                    td = document.createElement('td');
+                    td.innerHTML = row['address_1'];
+                    tr.appendChild(td);
+
+                    td = document.createElement('td');
+                    td.innerHTML = row['address_2'];
+                    tr.appendChild(td);
+
+                    td = document.createElement('td');
+                    td.innerHTML = row['postcode'];
+                    tr.appendChild(td);
+
+                    td = document.createElement('td');
+                    td.innerHTML = row['lat'];
+                    tr.appendChild(td);
+
+                    td = document.createElement('td');
+                    td.innerHTML = row['lng'];
+                    tr.appendChild(td);
+
+                    td = document.createElement('td');
+                    td.innerHTML = row['deliverer'];
+                    tr.appendChild(td);
+
+                    // Append the "View" link for del_photo
+                    const photoCell = document.createElement('td');
+                    photoCell.className = 'text-center';
+                    if (row['del_photo']) {
+                        const link = document.createElement('a');
+                        link.href = 'images/' + row['del_photo'];
+                        link.target = '_blank';
+                        link.innerHTML = '<img src="images/' + row['del_photo'] + '" height="45" width="45" alt="image"><br>View';
+                        photoCell.appendChild(link);
+                    }
+                    tr.appendChild(photoCell);
+
+                    td = document.createElement('td');
+                    td.innerHTML = row['status_text'];
+                    tr.appendChild(td);
+
+                    // Append the Update and Delete buttons
+                    const updateCell = document.createElement('td');
+                    updateCell.innerHTML = '<a class="btn btn-info btn-sm" href="UpdateController.php?id=' + row['parcel_id'] + '">Update</a>';
+                    tr.appendChild(updateCell);
+
+                    const deleteCell = document.createElement('td');
+                    deleteCell.innerHTML = '<a class="btn btn-warning btn-sm" href="?delete=true&id=' + row['parcel_id'] + '">Delete</a>';
+                    tr.appendChild(deleteCell);
+
+                    tableBody.appendChild(tr);
+                });
+            }
+        };
+
+        xhr.open('GET', 'ajax/getUserParcels.php?offset=' + offset + '&limit=100'); // Adjust the limit as needed
+        xhr.send();
+        offset += 100; // Increase the offset by the limit
+    }
+</script>
+<?php include_once('Views/template/footer.php'); ?>
